@@ -8,8 +8,39 @@ st.set_page_config(
     page_title="試験勉強・講義回別＆周回管理", page_icon="🎓", layout="wide"
 )
 
+# --- スマホ縦画面向けのレイアウト・ボタンデザイン用CSS ---
+st.markdown(
+    """
+<stylePlugin>
+    /* 全体コンテナの余白調整 */
+    .block-container {
+        padding-top: 1.5rem;
+        padding-bottom: 2rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    /* ボタンを格子状に綺麗に並べるFlexボックス */
+    .grid-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+        margin-bottom: 12px;
+    }
+    /* ボタン自体のスタイル調整（押しやすさと配置） */
+    div.stButton > button {
+        width: 100% !important;
+        padding: 6px 2px !important;
+        font-size: 13px !important;
+        font-weight: bold !important;
+        border-radius: 6px !important;
+    }
+</stylePlugin>
+""",
+    unsafe_allow_html=True,
+)
 
-# データの読み込みと保存
+
 def load_data():
     if os.path.exists(DATA_FILE):
         try:
@@ -28,10 +59,9 @@ def save_data(data):
 if "subjects" not in st.session_state:
     st.session_state.subjects = load_data()
 
-# ヘッダー
-st.title("🎓 レジュメ・講義回別＆周回管理")
+st.title("🎓 レジュメ・周回管理")
 
-# --- サイドバー (設定・操作エリア) ---
+# --- サイドバー (設定・操作) ---
 st.sidebar.header("🔄 記録設定")
 round_mode = st.sidebar.radio(
     "記録する周回数を選択", ["1周目 (緑)", "2周目 (青)", "3周目 (紫)"]
@@ -80,15 +110,13 @@ if st.sidebar.button("🗑️ 全データを削除"):
     save_data([])
     st.rerun()
 
-# --- メイン画面 (進捗カード一覧) ---
+# --- メイン表示エリア ---
 if not st.session_state.subjects:
-    st.info(
-        "登録された教材がありません。左側のサイドバーから科目とレジュメを追加してください。"
-    )
+    st.info("登録された教材がありません。左上の「＞」メニューから追加してください。")
 
 for item in st.session_state.subjects:
     with st.expander(f"📌 {item['subject']} - {item['title']}", expanded=True):
-        col_title, col_del = st.columns([5, 1])
+        col_title, col_del = st.columns([4, 1])
         with col_del:
             if st.button("🗑️ 削除", key=f"del_{item['id']}"):
                 st.session_state.subjects = [
@@ -109,46 +137,56 @@ for item in st.session_state.subjects:
             item["memo"] = memo
             save_data(st.session_state.subjects)
 
-        # 1. ページ管理の場合
+        # 1. ページ管理の場合（スマホ幅に合わせた可変グリッド配置）
         if item.get("hasPages", True):
-            total_p = item["endPage"] - item["startPage"] + 1
             st.write(
                 f"**範囲:** p.{item['startPage']} 〜 p.{item['endPage']} （全{item['lecturesCount']}回講義）"
             )
 
-            # ページボタンの配置
-            cols = st.columns(10)
-            for i, p in enumerate(
-                range(item["startPage"], item["endPage"] + 1)
-            ):
-                p_str = str(p)
-                r_level = item.get("pageRounds", {}).get(p_str, 0)
+            # 1行に5個ずつ均等に並べる（スマホ画面でぴったり収まる比率）
+            cols_per_row = 5
+            pages = list(range(item["startPage"], item["endPage"] + 1))
 
-                # 周回数に応じた表示テキスト
-                label = f"p.{p}" if r_level == 0 else f"p.{p} ({r_level}周)"
-                if cols[i % 10].button(label, key=f"p_{item['id']}_{p}"):
-                    item["pageRounds"][p_str] = (
-                        0 if r_level >= current_round else current_round
-                    )
-                    save_data(st.session_state.subjects)
-                    st.rerun()
+            for row_idx in range(0, len(pages), cols_per_row):
+                row_pages = pages[row_idx : row_idx + cols_per_row]
+                cols = st.columns(cols_per_row)
+                for i, p in enumerate(row_pages):
+                    p_str = str(p)
+                    r_level = item.get("pageRounds", {}).get(p_str, 0)
+
+                    # 状態に応じたラベル表示
+                    label = f"p.{p}" if r_level == 0 else f"p.{p}\n({r_level}周)"
+
+                    if cols[i].button(label, key=f"p_{item['id']}_{p}"):
+                        item["pageRounds"][p_str] = (
+                            0 if r_level >= current_round else current_round
+                        )
+                        save_data(st.session_state.subjects)
+                        st.rerun()
 
         # 2. 回数管理（ページなし）の場合
         else:
             st.write(f"**全{item['lecturesCount']}回講義**（ページ指定なし）")
-            cols = st.columns(5)
-            for l_num in range(1, item["lecturesCount"] + 1):
-                l_str = str(l_num)
-                r_level = item.get("lectureRounds", {}).get(l_str, 0)
 
-                label = (
-                    f"第{l_num}回" if r_level == 0 else f"第{l_num}回 ({r_level}周)"
-                )
-                if cols[(l_num - 1) % 5].button(
-                    label, key=f"l_{item['id']}_{l_num}"
-                ):
-                    item["lectureRounds"][l_str] = (
-                        0 if r_level >= current_round else current_round
+            cols_per_row = 3  # 講義数は文字が長いため1行3個で配置
+            lecs = list(range(1, item["lecturesCount"] + 1))
+
+            for row_idx in range(0, len(lecs), cols_per_row):
+                row_lecs = lecs[row_idx : row_idx + cols_per_row]
+                cols = st.columns(cols_per_row)
+                for i, l_num in enumerate(row_lecs):
+                    l_str = str(l_num)
+                    r_level = item.get("lectureRounds", {}).get(l_str, 0)
+
+                    label = (
+                        f"第{l_num}回"
+                        if r_level == 0
+                        else f"第{l_num}回\n({r_level}周)"
                     )
-                    save_data(st.session_state.subjects)
-                    st.rerun()
+
+                    if cols[i].button(label, key=f"l_{item['id']}_{l_num}"):
+                        item["lectureRounds"][l_str] = (
+                            0 if r_level >= current_round else current_round
+                        )
+                        save_data(st.session_state.subjects)
+                        st.rerun()
