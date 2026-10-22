@@ -12,9 +12,9 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-    /* 全体コンテナの余白調整 */
+    /* 全体コンテナの余白調整（上が切れないよう余白を確保） */
     .block-container {
-        padding-top: 1.5rem;
+        padding-top: 2rem;
         padding-bottom: 2rem;
         padding-left: 1rem;
         padding-right: 1rem;
@@ -58,6 +58,8 @@ def save_data(data):
 
 if "subjects" not in st.session_state:
     st.session_state.subjects = load_data()
+
+st.title("🎓 進捗状況")
 
 # --- サイドバー (設定・操作) ---
 st.sidebar.header("🔄 記録設定")
