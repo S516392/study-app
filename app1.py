@@ -11,7 +11,7 @@ st.set_page_config(
 # --- スマホ縦画面向けのレイアウト・ボタンデザイン用CSS ---
 st.markdown(
     """
-<stylePlugin>
+<style>
     /* 全体コンテナの余白調整 */
     .block-container {
         padding-top: 1.5rem;
@@ -35,7 +35,7 @@ st.markdown(
         font-weight: bold !important;
         border-radius: 6px !important;
     }
-</stylePlugin>
+</style>
 """,
     unsafe_allow_html=True,
 )
