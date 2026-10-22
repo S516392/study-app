@@ -1,7 +1,6 @@
 import json
 import os
-import time
-from tkinter import messagebox, ttk
+import streamlit as st
 
 DATA_FILE = "study_roadmap.json"
 
