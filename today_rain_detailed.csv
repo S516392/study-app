@@ -1,0 +1,5 @@
+﻿情報元,取得方式,雨データ種別,時間別・降雨の予報・様子,雨雲レーダー情報
+気象庁 (JMA),公式JSON API,降水確率 (%),エラー: can't compare offset-naive and offset-aware datetimes,https://www.jma.go.jp/bosai/nowc/
+Open-Meteo,無料Web API (キー不要),1時間毎 降水量(mm) & 確率,11:00: 0mm (0%) / 12:00: 0mm (0%) / 13:00: 0mm (0%) / 14:00: 0mm (0%) / 15:00: 0mm (0%) / 16:00: 0mm (0%) 他,数値モデル予測（レーダー画像なし）
+Yahoo!天気 (JWA),公式Web参照,雨雲レーダー / 1時間天気,リアルタイム雨雲推移はWebから確認可能,https://weather.yahoo.co.jp/weather/zoomradar/
+ウェザーニュース (WNI),公式Web参照,5分単位超密着レーダー予報,5分〜10分単位の雨雲接近予測,https://weathernews.jp/onebox/radar/
