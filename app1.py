@@ -59,8 +59,6 @@ def save_data(data):
 if "subjects" not in st.session_state:
     st.session_state.subjects = load_data()
 
-st.title("🎓 レジュメ・周回管理")
-
 # --- サイドバー (設定・操作) ---
 st.sidebar.header("🔄 記録設定")
 round_mode = st.sidebar.radio(
@@ -127,9 +125,9 @@ for item in st.session_state.subjects:
                 save_data(st.session_state.subjects)
                 st.rerun()
 
-        # 途中の進捗メモ
+        # 進捗メモ
         memo = st.text_input(
-            "📝 途中の進捗メモ",
+            "📝 メモ",
             value=item.get("memo", ""),
             key=f"memo_{item['id']}",
         )
@@ -137,13 +135,12 @@ for item in st.session_state.subjects:
             item["memo"] = memo
             save_data(st.session_state.subjects)
 
-        # 1. ページ管理の場合（スマホ幅に合わせた可変グリッド配置）
+        # 1. ページ管理の場合
         if item.get("hasPages", True):
             st.write(
                 f"**範囲:** p.{item['startPage']} 〜 p.{item['endPage']} （全{item['lecturesCount']}回講義）"
             )
 
-            # 1行に5個ずつ均等に並べる（スマホ画面でぴったり収まる比率）
             cols_per_row = 5
             pages = list(range(item["startPage"], item["endPage"] + 1))
 
@@ -154,7 +151,6 @@ for item in st.session_state.subjects:
                     p_str = str(p)
                     r_level = item.get("pageRounds", {}).get(p_str, 0)
 
-                    # 状態に応じたラベル表示
                     label = f"p.{p}" if r_level == 0 else f"p.{p}\n({r_level}周)"
 
                     if cols[i].button(label, key=f"p_{item['id']}_{p}"):
@@ -168,7 +164,7 @@ for item in st.session_state.subjects:
         else:
             st.write(f"**全{item['lecturesCount']}回講義**（ページ指定なし）")
 
-            cols_per_row = 3  # 講義数は文字が長いため1行3個で配置
+            cols_per_row = 3
             lecs = list(range(1, item["lecturesCount"] + 1))
 
             for row_idx in range(0, len(lecs), cols_per_row):
