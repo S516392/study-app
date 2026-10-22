@@ -8,32 +8,43 @@ st.set_page_config(
     page_title="試験勉強・講義回別＆周回管理", page_icon="🎓", layout="wide"
 )
 
-# --- スマホ縦画面向けのレイアウト・ボタンデザイン用CSS ---
+# --- スマホ縦画面向けのレイアウト・ボタンデザイン＆周回カラー用CSS ---
 st.markdown(
     """
 <style>
-    /* 全体コンテナの余白調整（上が切れないよう余白を確保） */
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
         padding-left: 1rem;
         padding-right: 1rem;
     }
-    /* ボタンを格子状に綺麗に並べるFlexボックス */
-    .grid-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 8px;
-        margin-bottom: 12px;
-    }
-    /* ボタン自体のスタイル調整（押しやすさと配置） */
     div.stButton > button {
         width: 100% !important;
         padding: 6px 2px !important;
         font-size: 13px !important;
         font-weight: bold !important;
         border-radius: 6px !important;
+        color: #111111 !important;
+        border: 1px solid #ccc !important;
+    }
+    /* 未着手（0周） */
+    div.stButton > button.round-0 {
+        background-color: #f0f2f6 !important;
+    }
+    /* 1周目（緑） */
+    div.stButton > button.round-1 {
+        background-color: #a8e6cf !important;
+        border-color: #56ab2f !important;
+    }
+    /* 2周目（青） */
+    div.stButton > button.round-2 {
+        background-color: #a0c4ff !important;
+        border-color: #4361ee !important;
+    }
+    /* 3周目（紫） */
+    div.stButton > button.round-3 {
+        background-color: #bdb2ff !important;
+        border-color: #7209b7 !important;
     }
 </style>
 """,
@@ -155,12 +166,27 @@ for item in st.session_state.subjects:
 
                     label = f"p.{p}" if r_level == 0 else f"p.{p}\n({r_level}周)"
 
-                    if cols[i].button(label, key=f"p_{item['id']}_{p}"):
+                    # ボタンの親要素にクラス名を判定して割り当てる
+                    btn_key = f"p_{item['id']}_{p}"
+                    if cols[i].button(label, key=btn_key):
                         item["pageRounds"][p_str] = (
                             0 if r_level >= current_round else current_round
                         )
                         save_data(st.session_state.subjects)
                         st.rerun()
+
+                    # JavaScriptなしでボタン個別に色クラスを当てるマークダウン注入
+                    st.markdown(
+                        f"""
+                        <script>
+                            var elements = window.parent.document.querySelectorAll('button[key="{btn_key}"]');
+                            if (elements.length > 0) {{
+                                elements[0].classList.add('round-{r_level}');
+                            }}
+                        </script>
+                    """,
+                        unsafe_allow_html=True,
+                    )
 
         # 2. 回数管理（ページなし）の場合
         else:
@@ -182,9 +208,22 @@ for item in st.session_state.subjects:
                         else f"第{l_num}回\n({r_level}周)"
                     )
 
-                    if cols[i].button(label, key=f"l_{item['id']}_{l_num}"):
+                    btn_key = f"l_{item['id']}_{l_num}"
+                    if cols[i].button(label, key=btn_key):
                         item["lectureRounds"][l_str] = (
                             0 if r_level >= current_round else current_round
                         )
                         save_data(st.session_state.subjects)
                         st.rerun()
+
+                    st.markdown(
+                        f"""
+                        <script>
+                            var elements = window.parent.document.querySelectorAll('button[key="{btn_key}"]');
+                            if (elements.length > 0) {{
+                                elements[0].classList.add('round-{r_level}');
+                            }}
+                        </script>
+                    """,
+                        unsafe_allow_html=True,
+                    )
