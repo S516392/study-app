@@ -1,7 +1,6 @@
 import json
 import os
 import time
-import tkinter as tk
 from tkinter import messagebox, ttk
 
 DATA_FILE = "study_roadmap.json"
